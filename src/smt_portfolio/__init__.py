@@ -120,9 +120,9 @@ def run_all(solvers: List[Solver], input_file: Path) -> Result:
     done = [False for _ in solvers]
     results = [None for _ in solvers]
 
-    while procs != []:
+    while not all(done):
         for i, p in enumerate(procs):
-            if p.poll() is None:
+            if done[i] or p.poll() is None:
                 continue
             done[i] = True
             out = p.stdout.read().strip()
@@ -132,7 +132,6 @@ def run_all(solvers: List[Solver], input_file: Path) -> Result:
             if r in [Result.SAT, Result.UNSAT]:
                 clean(procs)
                 return r
-        procs = [p for i, p in enumerate(procs) if not done[i]]
         time.sleep(0.01)
 
     for r in results:
