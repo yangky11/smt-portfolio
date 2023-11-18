@@ -9,6 +9,9 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 
+__version__ = "0.1.0"
+
+
 class Result(Enum):
     SAT = 1
     UNSAT = 2
