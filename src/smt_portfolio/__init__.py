@@ -11,7 +11,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.1"
 
 
 class Result(Enum):
@@ -59,12 +59,10 @@ class Z3(Solver):
             return Result.SAT
         elif out == "unsat":
             return Result.UNSAT
-        elif out == "unknown":
-            return Result.UNKNOWN
         elif out == "timeout":
             return Result.TIMEOUT
         else:
-            raise ValueError(f"Unexpected result from Z3\nstdout: {out}\nstderr: {err}")
+            return Result.UNKNOWN
 
 
 class CVC5(Solver):
@@ -84,14 +82,32 @@ class CVC5(Solver):
             return Result.SAT
         elif out == "unsat":
             return Result.UNSAT
-        elif out == "unknown":
-            return Result.UNKNOWN
         elif out == "" and "cvc5 interrupted by timeout" in err:
             return Result.TIMEOUT
         else:
-            raise ValueError(
-                f"Unexpected result from CVC5\nstdout: {out}\nstderr: {err}"
-            )
+            return Result.UNKNOWN
+
+
+class Vampire(Solver):
+    def run(self, input_file: Path) -> subprocess.Popen:
+        assert "smtlib2" in self.args
+        return subprocess.Popen(
+            shlex.split(f"vampire {self.args} {input_file}"),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            encoding="utf-8",
+            bufsize=1,
+        )
+
+    def parse_result(self, out: str, err: str) -> Result:
+        if out == "sat":
+            return Result.SAT
+        elif out == "unsat":
+            return Result.UNSAT
+        else:
+            return Result.UNKNOWN
 
 
 def clean(procs: List[subprocess.Popen]) -> None:
@@ -138,6 +154,7 @@ def main() -> None:
     )
     parser.add_argument("--z3", type=str, help="Z3's command line arguments")
     parser.add_argument("--cvc5", type=str, help="CVC5's command line arguments")
+    parser.add_argument("--vampire", type=str, help="Vampire's command line arguments")
     args = parser.parse_args()
 
     solvers = []
@@ -145,6 +162,8 @@ def main() -> None:
         solvers.append(Z3(args.z3))
     if args.cvc5:
         solvers.append(CVC5(args.cvc5))
+    if args.vampire:
+        solvers.append(Vampire(args.vampire))
 
     if args.file:
         result = run_all(solvers, args.file)
