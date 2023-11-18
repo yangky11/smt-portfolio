@@ -11,7 +11,7 @@ exclude = [
 
 [project]
 name = "smt-portfolio"
-version = "0.3.1"
+version = "0.3.2"
 authors = [
   { name="Kaiyu Yang", email="kaiyuy@caltech.edu" },
 ]
