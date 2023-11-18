@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import sys
 import time
 import shlex
+import tempfile
 import argparse
 import subprocess
 from enum import Enum
@@ -9,7 +11,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 class Result(Enum):
@@ -128,7 +130,12 @@ def run_all(solvers: List[Solver], input_file: Path) -> Result:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", type=Path, help="Input SMT-LIB file")
+    parser.add_argument(
+        "--file",
+        type=Path,
+        required=False,
+        help="Input SMT-LIB file. If `None`, it reads formula from stdin until `(check-sat)`",
+    )
     parser.add_argument("--z3", type=str, help="Z3's command line arguments")
     parser.add_argument("--cvc5", type=str, help="CVC5's command line arguments")
     args = parser.parse_args()
@@ -139,7 +146,18 @@ def main() -> None:
     if args.cvc5:
         solvers.append(CVC5(args.cvc5))
 
-    print(run_all(solvers, args.input))
+    if args.file:
+        result = run_all(solvers, args.file)
+    else:
+        oup = tempfile.NamedTemporaryFile("wt")
+        for line in sys.stdin:
+            oup.write(line)
+            if line.strip() == "(check-sat)":
+                break
+        oup.flush()
+        result = run_all(solvers, Path(oup.name))
+
+    print(result)
 
 
 if __name__ == "__main__":
