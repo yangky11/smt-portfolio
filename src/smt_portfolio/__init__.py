@@ -91,11 +91,7 @@ class CVC5(Solver):
 
 def clean(procs: List[subprocess.Popen]) -> None:
     for p in procs:
-        p.terminate()
-        try:
-            p.wait(timeout=0.5)
-        except subprocess.TimeoutExpired:
-            p.kill()
+        p.kill()
 
 
 def run_all(solvers: List[Solver], input_file: Path) -> Result:
