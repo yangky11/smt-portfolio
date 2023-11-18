@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import shlex
 import argparse
 import subprocess
@@ -115,6 +116,7 @@ def run_all(solvers: List[Solver], input_file: Path) -> Result:
                 clean(procs)
                 return r
         procs = [p for i, p in enumerate(procs) if not done[i]]
+        time.sleep(0.1)
 
     for r in results:
         assert r in [Result.UNKNOWN, Result.TIMEOUT]
