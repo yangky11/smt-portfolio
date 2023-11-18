@@ -112,7 +112,7 @@ def run_all(solvers: List[Solver], input_file: Path) -> Result:
                 clean(procs)
                 return r
         procs = [p for i, p in enumerate(procs) if not done[i]]
-        time.sleep(0.1)
+        time.sleep(0.01)
 
     for r in results:
         assert r in [Result.UNKNOWN, Result.TIMEOUT]
