@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/examples",
+  "/scripts",
+]
+
+[project]
+name = "smt-portfolio"
+version = "0.0.1"
+authors = [
+  { name="Kaiyu Yang", email="kaiyuy@caltech.edu" },
+]
+description = "A simple wrapper to run multiple SMT solvers in parallel."
+keywords = ["SMT"]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "ipython",
+  "notebook",
+  "hatch"
+]
+lint = [
+  "mypy",
+  "black[jupyter]",
+]
+all = [
+  "ipython",
+  "notebook",
+  "hatch",
+  "mypy",
+  "black[jupyter]",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yangky11/smt-portfolio"
+"Bug Tracker" = "https://github.com/yangky11/smt-portfolio/issues"
+
+[project.scripts]
+smt-portfolio = "smt_portfolio:main"
