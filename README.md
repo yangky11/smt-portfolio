@@ -20,7 +20,7 @@ pip install smt-portfolio
 
 ## Usage
 
-``bash
+```bash
 smt-portfolio --help
 ```
 
