@@ -1,33 +1,144 @@
+#!/usr/bin/env python3
+import shlex
 import argparse
+import subprocess
+from enum import Enum
+from typing import List
+from pathlib import Path
 from abc import ABC, abstractmethod
+
+
+class Result(Enum):
+    SAT = 1
+    UNSAT = 2
+    UNKNOWN = 3
+    TIMEOUT = 4
+
+    def __str__(self) -> str:
+        if self == Result.SAT:
+            return "sat"
+        elif self == Result.UNSAT:
+            return "unsat"
+        elif self == Result.UNKNOWN:
+            return "unknown"
+        elif self == Result.TIMEOUT:
+            return "timeout"
+        else:
+            raise ValueError(f"Unexpected result: {self}")
 
 
 class Solver(ABC):
     def __init__(self, args: str):
         self.args = args
 
+    @abstractmethod
+    def run(self, input_file: str) -> Result:
+        raise NotImplementedError
+
 
 class Z3(Solver):
-    pass
+    def run(self, input_file: Path) -> subprocess.Popen:
+        return subprocess.Popen(
+            shlex.split(f"z3 {self.args} {input_file}"),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            encoding="utf-8",
+            bufsize=1,
+        )
+
+    def parse_result(self, out: str, err: str) -> Result:
+        if out == "sat":
+            return Result.SAT
+        elif out == "unsat":
+            return Result.UNSAT
+        elif out == "unknown":
+            return Result.UNKNOWN
+        elif out == "timeout":
+            return Result.TIMEOUT
+        else:
+            raise ValueError(f"Unexpected result from Z3\nstdout: {out}\nstderr: {err}")
 
 
 class CVC5(Solver):
-    pass
+    def run(self, input_file: Path) -> subprocess.Popen:
+        return subprocess.Popen(
+            shlex.split(f"cvc5 {self.args} {input_file}"),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            encoding="utf-8",
+            bufsize=1,
+        )
+
+    def parse_result(self, out: str, err: str) -> Result:
+        if out == "sat":
+            return Result.SAT
+        elif out == "unsat":
+            return Result.UNSAT
+        elif out == "unknown":
+            return Result.UNKNOWN
+        elif out == "" and "cvc5 interrupted by timeout" in err:
+            return Result.TIMEOUT
+        else:
+            raise ValueError(
+                f"Unexpected result from CVC5\nstdout: {out}\nstderr: {err}"
+            )
+
+
+def clean(procs: List[subprocess.Popen]) -> None:
+    for p in procs:
+        p.terminate()
+        try:
+            p.wait(timeout=0.5)
+        except subprocess.TimeoutExpired:
+            p.kill()
+
+
+def run_all(solvers: List[Solver], input_file: Path) -> Result:
+    procs = [s.run(input_file) for s in solvers]
+    done = [False for _ in solvers]
+    results = [None for _ in solvers]
+
+    while procs != []:
+        for i, p in enumerate(procs):
+            if p.poll() is None:
+                continue
+            done[i] = True
+            out = p.stdout.read().strip()
+            err = p.stderr.read().strip()
+            r = solvers[i].parse_result(out, err)
+            results[i] = r
+            if r in [Result.SAT, Result.UNSAT]:
+                clean(procs)
+                return r
+        procs = [p for i, p in enumerate(procs) if not done[i]]
+
+    for r in results:
+        assert r in [Result.UNKNOWN, Result.TIMEOUT]
+
+    if all(r == Result.TIMEOUT for r in results):
+        return Result.TIMEOUT
+    else:
+        return Result.UNKNOWN
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("iput-file", type=str, help="Input SMT-LIB file")
+    parser.add_argument("input", type=Path, help="Input SMT-LIB file")
     parser.add_argument("--z3", type=str, help="Z3's command line arguments")
     parser.add_argument("--cvc5", type=str, help="CVC5's command line arguments")
     args = parser.parse_args()
-    print(args)
 
     solvers = []
     if args.z3:
         solvers.append(Z3(args.z3))
     if args.cvc5:
         solvers.append(CVC5(args.cvc5))
+
+    print(run_all(solvers, args.input))
 
 
 if __name__ == "__main__":
