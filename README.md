@@ -11,6 +11,7 @@ ______________________________________________________________________
 
 * Z3
 * CVC5
+* Vampire
 
 ## Installation
 
@@ -25,7 +26,6 @@ smt-portfolio --help
 ```
 
 ```bash
-smt-portfolio --file examples/ex1.smt2 --z3 "-smt2 -T:5" --cvc5 "--quiet --lang smt --dag-thresh=0 --enum-inst --tlimit 5000"
-cat examples/ex1.smt2 | smt-portfolio --z3 "-smt2 -T:5" --cvc5 "--quiet --lang smt --dag-thresh=0 --enum-inst --tlimit 5000"
+smt-portfolio --file examples/ex1.smt2 --z3 "-smt2 -T:5" --cvc5 "--quiet --lang smt --dag-thresh=0 --enum-inst --tlimit 5000" --vampire "--input_syntax smtlib2 --output_mode smtcomp --time_limit 5"
+cat examples/ex1.smt2 | smt-portfolio --z3 "-smt2 -T:5" --cvc5 "--quiet --lang smt --dag-thresh=0 --enum-inst --tlimit 5000" --vampire "--input_syntax smtlib2 --output_mode smtcomp --time_limit 5"
 ```
-
