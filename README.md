@@ -1,6 +1,6 @@
 # smt-portfolio
 
-A simple wrapper to run multiple SMT solvers in parallel (currently supporting Z3 and CVC5).
+A simple wrapper to run multiple SMT solvers in parallel (currently supporting Z3, CVC5, and Vampire).
 
 [![PyPI](https://img.shields.io/pypi/v/smt-portfolio)](https://pypi.org/project/smt-portfolio/) [![GitHub license](https://img.shields.io/github/license/yangky11/smt-portfolio)](https://github.com/yangky11/smt-portfolio/blob/main/LICENSE) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
