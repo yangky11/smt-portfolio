@@ -9,9 +9,9 @@ ______________________________________________________________________
 
 ## Requirements
 
-* Z3
-* CVC5
-* Vampire
+* [Z3](https://github.com/Z3Prover/z3)
+* [CVC5](https://cvc5.github.io/)
+* [Vampire](https://vprover.github.io/)
 
 ## Installation
 
