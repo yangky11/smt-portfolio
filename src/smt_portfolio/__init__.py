@@ -11,7 +11,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 
-__version__ = "0.3.2"
+__version__ = "1.0.0"
 
 
 class Result(Enum):
